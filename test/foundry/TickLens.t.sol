@@ -45,6 +45,7 @@ contract TickLensTest is BaseTest, PoolUtils {
 
 contract PCSV3TickLensTest is TickLensTest {
     function setUp() public override {
+        chainId = 56;
         dex = DEX.PancakeSwapV3;
         super.setUp();
     }

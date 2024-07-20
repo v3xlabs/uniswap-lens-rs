@@ -168,6 +168,7 @@ contract PositionLensTest is BaseTest {
 
 contract PCSV3PositionLensTest is PositionLensTest {
     function setUp() public override {
+        chainId = 56;
         dex = DEX.PancakeSwapV3;
         super.setUp();
     }
