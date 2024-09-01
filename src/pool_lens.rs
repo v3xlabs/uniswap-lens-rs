@@ -1,3 +1,7 @@
+//! ## Pool Lens
+//!
+//! The pool lens module provides functions to fetch pool details using ephemeral contracts.
+
 use crate::{
     bindings::{
         ephemeralgetpopulatedticksinrange::EphemeralGetPopulatedTicksInRange::{
@@ -18,17 +22,30 @@ use crate::{
 use alloy::{
     contract::Error,
     eips::BlockId,
-    primitives::{Address, Bytes},
+    primitives::{aliases::I24, Address, Bytes},
     providers::Provider,
     sol_types::SolCall,
     transports::{Transport, TransportError},
 };
 use anyhow::Result;
 
+/// Get the populated ticks in a tick range.
+///
+/// ## Arguments
+///
+/// * `pool`: The address of a V3 pool
+/// * `tick_lower`: The lower tick boundary
+/// * `tick_upper`: The upper tick boundary
+/// * `provider`: The alloy provider
+/// * `block_id`: Optional block number to query
+///
+/// ## Returns
+///
+/// A vector of populated ticks within the range
 pub async fn get_populated_ticks_in_range<T, P>(
     pool: Address,
-    tick_lower: i32,
-    tick_upper: i32,
+    tick_lower: I24,
+    tick_upper: I24,
     provider: P,
     block_id: Option<BlockId>,
 ) -> Result<Vec<PopulatedTick>>
@@ -40,7 +57,10 @@ where
         provider, pool, tick_lower, tick_upper,
     );
     match call_ephemeral_contract!(deploy_builder, getPopulatedTicksInRangeCall, block_id) {
-        Ok(getPopulatedTicksInRangeReturn { populatedTicks }) => Ok(populatedTicks),
+        Ok(getPopulatedTicksInRangeReturn { populatedTicks }) => Ok(populatedTicks
+            .into_iter()
+            .filter(|PopulatedTick { tick, .. }| *tick >= tick_lower && *tick <= tick_upper)
+            .collect()),
         Err(err) => Err(err.into()),
     }
 }
@@ -55,6 +75,17 @@ macro_rules! get_pool_storage {
     };
 }
 
+/// Get the static storage slots of a pool.
+///
+/// ## Arguments
+///
+/// * `pool`: The address of a V3 pool
+/// * `provider`: The alloy provider
+/// * `block_id`: Optional block number to query
+///
+/// ## Returns
+///
+/// A vector of slots containing the storage data
 pub async fn get_static_slots<T, P>(
     pool: Address,
     provider: P,
@@ -70,10 +101,23 @@ where
     )
 }
 
+/// Get the storage slots in the `ticks` mapping between `tick_lower` and `tick_upper`.
+///
+/// ## Arguments
+///
+/// * `pool`: The address of a V3 pool
+/// * `tick_lower`: The lower tick boundary
+/// * `tick_upper`: The upper tick boundary
+/// * `provider`: The alloy provider
+/// * `block_id`: Optional block number to query
+///
+/// ## Returns
+///
+/// A vector of slots containing the storage data
 pub async fn get_ticks_slots<T, P>(
     pool: Address,
-    tick_lower: i32,
-    tick_upper: i32,
+    tick_lower: I24,
+    tick_upper: I24,
     provider: P,
     block_id: Option<BlockId>,
 ) -> Result<Vec<Slot>>
@@ -86,6 +130,17 @@ where
         block_id
     )
 }
+/// Get the storage slots in the `tickBitmap` mapping.
+///
+/// ## Arguments
+///
+/// * `pool`: The address of a V3 pool
+/// * `provider`: The alloy provider
+/// * `block_id`: Optional block number to query
+///
+/// ## Returns
+///
+/// A vector of slots containing the storage data
 pub async fn get_tick_bitmap_slots<T, P>(
     pool: Address,
     provider: P,
@@ -100,6 +155,18 @@ where
         block_id
     )
 }
+/// Get the storage slots in the `positions` mapping.
+///
+/// ## Arguments
+///
+/// * `pool`: The address of a V3 pool
+/// * `positions`: A vector of position keys
+/// * `provider`: The alloy provider
+/// * `block_id`: Optional block number to query
+///
+/// ## Returns
+///
+/// A vector of slots containing the storage data
 pub async fn get_positions_slots<T, P>(
     pool: Address,
     positions: Vec<PositionKey>,
@@ -133,10 +200,11 @@ mod tests {
         let provider = PROVIDER.clone();
         let pool = IUniswapV3PoolInstance::new(POOL_ADDRESS, provider.clone());
         let tick_current = pool.slot0().block(*BLOCK_NUMBER).call().await?.tick;
+        let tick_spacing = pool.tickSpacing().block(*BLOCK_NUMBER).call().await?._0;
         let ticks = get_populated_ticks_in_range(
             POOL_ADDRESS,
             tick_current,
-            tick_current,
+            tick_current + (tick_spacing << 8),
             provider,
             Some(*BLOCK_NUMBER),
         )

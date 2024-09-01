@@ -1,3 +1,7 @@
+//! ## Position Lens
+//!
+//! The position lens module provides functions to fetch position details using ephemeral contracts.
+
 use crate::{
     bindings::{
         ephemeralallpositionsbyowner::{
@@ -31,6 +35,18 @@ use alloy::{
 };
 use anyhow::Result;
 
+/// Get the details of a position given the token ID.
+///
+/// ## Arguments
+///
+/// * `npm`: The address of the non-fungible position manager
+/// * `token_id`: The token ID of the position
+/// * `provider`: The alloy provider
+/// * `block_id`: Optional block number to query
+///
+/// ## Returns
+///
+/// The position details
 pub async fn get_position_details<T, P>(
     npm: Address,
     token_id: U256,
@@ -48,6 +64,18 @@ where
     }
 }
 
+/// Get the details of multiple positions given the token IDs.
+///
+/// ## Arguments
+///
+/// * `npm`: The address of the non-fungible position manager
+/// * `token_ids`: The token IDs of the positions
+/// * `provider`: The alloy provider
+/// * `block_id`: Optional block number to query
+///
+/// ## Returns
+///
+/// The array of position details
 pub async fn get_positions<T, P>(
     npm: Address,
     token_ids: Vec<U256>,
@@ -65,6 +93,18 @@ where
     }
 }
 
+/// Get all positions owned by an address.
+///
+/// ## Arguments
+///
+/// * `npm`: The address of the non-fungible position manager
+/// * `owner`: The address of the owner
+/// * `provider`: The alloy provider
+/// * `block_id`: Optional block number to query
+///
+/// ## Returns
+///
+/// The array of position details
 pub async fn get_all_positions_by_owner<T, P>(
     npm: Address,
     owner: Address,
@@ -94,7 +134,7 @@ mod tests {
         tests::*,
     };
     use alloy::{
-        primitives::{address, b256, keccak256, uint, B256},
+        primitives::{address, aliases::U24, b256, keccak256, uint, B256},
         sol_types::SolValue,
     };
 
@@ -119,7 +159,7 @@ mod tests {
         factory: Address,
         token_a: Address,
         token_b: Address,
-        fee: u32,
+        fee: U24,
         init_code_hash: B256,
     ) -> Address {
         let (token_0, token_1) = if token_a < token_b {
@@ -127,7 +167,7 @@ mod tests {
         } else {
             (token_b, token_a)
         };
-        let pool_key = (token_0, token_1, fee as i32);
+        let pool_key = (token_0, token_1, fee);
         factory.create2(keccak256(pool_key.abi_encode()), init_code_hash)
     }
 
