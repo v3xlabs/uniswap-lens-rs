@@ -56,12 +56,3 @@ contract EphemeralPoolPositions is PoolUtils {
         }
     }
 }
-
-contract EphemeralPCSV3PoolPositions is EphemeralPoolPositions {
-    constructor(V3PoolCallee pool, PositionKey[] memory keys) payable EphemeralPoolPositions(pool, keys) {}
-
-    function getPositionsSlot() internal pure override returns (uint256) {
-        // Storage slot of the `positions` mapping in PancakeSwapV3Pool.
-        return 8;
-    }
-}

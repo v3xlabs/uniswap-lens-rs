@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-import {INonfungiblePositionManager as INPM} from "@aperture_finance/uni-v3-lib/src/interfaces/INonfungiblePositionManager.sol";
+import {IUniswapV3NonfungiblePositionManager as INPM} from "@aperture_finance/uni-v3-lib/src/interfaces/IUniswapV3NonfungiblePositionManager.sol";
 import "@aperture_finance/uni-v3-lib/src/LiquidityAmounts.sol";
 import "@aperture_finance/uni-v3-lib/src/PoolCaller.sol";
 import "@aperture_finance/uni-v3-lib/src/TernaryLib.sol";
 import "@aperture_finance/uni-v3-lib/src/TickBitmap.sol";
 import "@aperture_finance/uni-v3-lib/src/TickMath.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "@pancakeswap/v3-core/contracts/interfaces/callback/IPancakeV3MintCallback.sol";
-import "@pancakeswap/v3-core/contracts/interfaces/callback/IPancakeV3SwapCallback.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3MintCallback.sol";
@@ -22,13 +20,7 @@ enum DEX {
     PancakeSwapV3
 }
 
-abstract contract BaseTest is
-    Test,
-    IPancakeV3MintCallback,
-    IPancakeV3SwapCallback,
-    IUniswapV3MintCallback,
-    IUniswapV3SwapCallback
-{
+abstract contract BaseTest is Test, IUniswapV3MintCallback, IUniswapV3SwapCallback {
     using SafeTransferLib for address;
     using TernaryLib for bool;
     using TickMath for int24;

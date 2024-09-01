@@ -113,16 +113,3 @@ contract EphemeralPoolTicks is PoolUtils {
         }
     }
 }
-
-contract EphemeralPCSV3PoolTicks is EphemeralPoolTicks {
-    constructor(
-        V3PoolCallee pool,
-        int24 tickLower,
-        int24 tickUpper
-    ) payable EphemeralPoolTicks(pool, tickLower, tickUpper) {}
-
-    function getTicksSlot() internal pure override returns (uint256) {
-        // Storage slot of the `ticks` mapping in PancakeSwapV3Pool.
-        return 6;
-    }
-}
