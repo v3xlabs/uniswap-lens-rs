@@ -6,6 +6,7 @@
 use crate::bindings::ephemeralstoragelens::{
     EphemeralStorageLens, EphemeralStorageLens::EphemeralStorageLensInstance,
 };
+use alloc::vec::Vec;
 use alloy::{
     eips::BlockId,
     primitives::{Address, FixedBytes},
@@ -73,7 +74,7 @@ mod tests {
                 .map(|i| FixedBytes::from(U256::from_limbs([i, 0, 0, 0])))
                 .collect(),
             provider.clone(),
-            Some(*BLOCK_NUMBER),
+            Some(BLOCK_NUMBER),
         )
         .await?;
         let slots_ref = slots.as_slice();
@@ -81,7 +82,7 @@ mod tests {
         let futures = (0..10).map(|i| async move {
             let slot = provider
                 .get_storage_at(POOL_ADDRESS, U256::from_limbs([i, 0, 0, 0]))
-                .block_id(*BLOCK_NUMBER)
+                .block_id(BLOCK_NUMBER)
                 .await
                 .unwrap();
             assert_eq!(slot, U256::from_be_bytes(slots_ref[i as usize].0));
