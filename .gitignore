@@ -135,12 +135,12 @@ dist
 # Foundry cache
 cache
 dry-run
-src/bindings
+# src/bindings
 
 # Hardhat cache
-artifacts
+# artifacts
 cache_hardhat
-typechain
+# typechain
 
 
 # Added by cargo
